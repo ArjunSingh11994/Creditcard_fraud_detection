@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+.env
+*.log
+
+# Large/raw datasets
+data/raw/
+data/processed/

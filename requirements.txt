@@ -1,0 +1,11 @@
+Flastapi
+uvicorn
+pydantic
+optuna
+xgboost
+lightgbm
+scikit-learn
+mlflow
+scipy
+shap
+seaborn
