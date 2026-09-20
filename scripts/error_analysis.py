@@ -56,12 +56,7 @@ def main():
     print("\n[4] Creating features...")
 
     featured_df = create_features( combined_df )
-
-    print(
-        f"Feature-engineered shape: "
-        f"{featured_df.shape}"
-    )
-
+    print(f"Feature-engineered shape: "f"{featured_df.shape}")
     # 6. Extract Test Rows
 
     print("\n[5] Extracting test transactions...")
@@ -71,7 +66,6 @@ def main():
     # 7. Sort Back to Original Test Order
 
     test_featured = test_featured.sort_values( "_raw_test_id").reset_index(drop=True)
-
 
     # 8. Separate Target
  
@@ -101,25 +95,14 @@ def main():
 
         model_features = list(model.feature_names_in_)
 
-        missing_features = [
-            col
-            for col in model_features
-            if col not in X_test.columns
-        ]
+        missing_features = [col for col in model_features if col not in X_test.columns]
 
         if missing_features:
-
             print("\nMissing features:")
-
             for col in missing_features:
                 print(f"  - {col}")
-
-            raise ValueError(
-                "Required model features are missing."
-            )
-
+            raise ValueError("Required model features are missing.")
         X_model = X_test[model_features]
-
     else:
         X_model = X_test
 
@@ -150,36 +133,24 @@ def main():
     analysis_df["error_type"] = "CORRECT"
 
     analysis_df.loc[(analysis_df["is_fraud"] == 0) & (analysis_df["prediction"] == 1),
-        "error_type"
-    ] = "FALSE_POSITIVE"
+        "error_type"] = "FALSE_POSITIVE"
 
-    analysis_df.loc[
-        (analysis_df["is_fraud"] == 1)
-        & (analysis_df["prediction"] == 0),
-        "error_type"
-    ] = "FALSE_NEGATIVE"
-
+    analysis_df.loc[(analysis_df["is_fraud"] == 1) & (analysis_df["prediction"] == 0),
+        "error_type"] = "FALSE_NEGATIVE"
     analysis_df.loc[
         (analysis_df["is_fraud"] == 0)
         & (analysis_df["prediction"] == 0),
-        "error_type"
-    ] = "TRUE_NEGATIVE"
+        "error_type"] = "TRUE_NEGATIVE"
 
-    analysis_df.loc[
-        (analysis_df["is_fraud"] == 1)
-        & (analysis_df["prediction"] == 1),
-        "error_type"
-    ] = "TRUE_POSITIVE"
-
+    analysis_df.loc[(analysis_df["is_fraud"] == 1) & (analysis_df["prediction"] == 1),
+        "error_type"] = "TRUE_POSITIVE"
 
     # 15. Error Counts
 
     print("\n" + "=" * 70)
     print("ERROR COUNTS")
     print("=" * 70)
-
     print(analysis_df["error_type"].value_counts())
-
 
     # 16. False Positives
 
@@ -188,9 +159,7 @@ def main():
     print("\n" + "=" * 70)
     print("FALSE POSITIVES")
     print("=" * 70)
-
     print(f"Total false positives: "f"{len(false_positives)}")
-
 
     # 17. False Negatives
 
@@ -199,10 +168,7 @@ def main():
     print("\n" + "=" * 70)
     print("FALSE NEGATIVES")
     print("=" * 70)
-
-    print(f"Total false negatives: "
-        f"{len(false_negatives)}")
-
+    print(f"Total false negatives: "f"{len(false_negatives)}")
 
     # 18. Most Confident False Positives
 
@@ -219,12 +185,9 @@ def main():
         "state",
         "gender",
         "age",
-        "fraud_probability"
-    ]
+        "fraud_probability"]
 
-    fp_display_columns = [
-        col
-        for col in fp_display_columns
+    fp_display_columns = [col for col in fp_display_columns
         if col in false_positives.columns]
 
     if len(false_positives) > 0:
@@ -245,27 +208,19 @@ def main():
         "state",
         "gender",
         "age",
-        "fraud_probability"
-    ]
+        "fraud_probability"]
 
-    fn_display_columns = [
-        col
-        for col in fn_display_columns
-        if col in false_negatives.columns
-    ]
+    fn_display_columns = [col for col in fn_display_columns
+        if col in false_negatives.columns]
 
     if len(false_negatives) > 0:
-        print(false_negatives[ fn_display_columns ].sort_values(
-                "fraud_probability",
-                ascending=True).head(20).to_string(index=False))
-
+        print(false_negatives[ fn_display_columns ].sort_values("fraud_probability",ascending=True).head(20).to_string(index=False))
 
     # 20. Amount Analysis
 
     print("\n" + "=" * 70)
     print("AVERAGE TRANSACTION AMOUNT")
     print("=" * 70)
-
     print(analysis_df.groupby("error_type")["amt"].mean().round(2))
 
     # 21. Category Analysis
@@ -275,117 +230,44 @@ def main():
         print("ERRORS BY CATEGORY")
         print("=" * 70)
         category_errors = pd.crosstab(analysis_df["category"],analysis_df["error_type"])
-
         print(category_errors.to_string())
 
     # 22. Merchant Analysis
 
     if "merchant" in analysis_df.columns:
-
         print("\n" + "=" * 70)
         print("FALSE POSITIVES BY MERCHANT")
         print("=" * 70)
-
         fp_merchants = (false_positives["merchant"].value_counts().head(20))
-
         print(fp_merchants.to_string())
 
-
-
     # 23. Save All Errors
-
-    errors_only = analysis_df[
-        analysis_df["error_type"].isin([
-            "FALSE_POSITIVE",
-            "FALSE_NEGATIVE"
-        ])
-    ].copy()
-
-
-    errors_path = (
-        PROJECT_ROOT
-        / "data"
-        / "processed"
-        / "model_errors.csv"
-    )
-
-    errors_only.to_csv(
-        errors_path,
-        index=False
-    )
-
-
-    # ========================================================
+    errors_only = analysis_df[analysis_df["error_type"].isin(["FALSE_POSITIVE","FALSE_NEGATIVE"])].copy()
+    errors_path = (PROJECT_ROOT/ "data"/ "processed"/ "model_errors.csv")
+    errors_only.to_csv(errors_path,index=False)
+    
     # 24. Save False Positives
-    # ========================================================
 
-    fp_path = (
-        PROJECT_ROOT
-        / "data"
-        / "processed"
-        / "false_positives.csv"
-    )
+    fp_path = (PROJECT_ROOT/"data"/ "processed"/"false_positives.csv")
+    false_positives.to_csv(fp_path,index=False)
 
-    false_positives.to_csv(
-        fp_path,
-        index=False
-    )
-
-
-    # ========================================================
     # 25. Save False Negatives
-    # ========================================================
 
-    fn_path = (
-        PROJECT_ROOT
-        / "data"
-        / "processed"
-        / "false_negatives.csv"
-    )
-
-    false_negatives.to_csv(
-        fn_path,
-        index=False
-    )
+    fn_path = (PROJECT_ROOT/"data"/"processed"/"false_negatives.csv")
+    false_negatives.to_csv(fn_path,index=False)
 
     # 26. Final Summary
-
 
     print("\n" + "=" * 70)
     print("ERROR ANALYSIS SUMMARY")
     print("=" * 70)
-
-    print(
-        f"Threshold       : {DEFAULT_THRESHOLD}"
-    )
-
-    print(
-        f"False positives : {len(false_positives)}"
-    )
-
-    print(
-        f"False negatives : {len(false_negatives)}"
-    )
-
-    print(
-        f"\nAll errors saved to:"
-        f"\n{errors_path}"
-    )
-
-    print(
-        f"\nFalse positives saved to:"
-        f"\n{fp_path}"
-    )
-
-    print(
-        f"\nFalse negatives saved to:"
-        f"\n{fn_path}"
-    )
-
-    print(
-        "\nError analysis completed successfully."
-    )
-
+    print(f"Threshold       : {DEFAULT_THRESHOLD}")
+    print(f"False positives : {len(false_positives)}")
+    print(f"False negatives : {len(false_negatives)}")
+    print(f"\nAll errors saved to:"f"\n{errors_path}")
+    print(f"\nFalse positives saved to:"f"\n{fp_path}")
+    print(f"\nFalse negatives saved to:"f"\n{fn_path}")
+    print("\nError analysis completed successfully.")
 
 
 if __name__ == "__main__":
