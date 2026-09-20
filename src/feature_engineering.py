@@ -144,9 +144,7 @@ def create_features(df):
             df["previous_merch_long"] = (df.groupby("cc_num")["merch_long"].shift(1))
 
         # Distance From Previous Merchant
-
-        if all(col in df.columns for col in ["previous_merch_lat","previous_merch_long","merch_lat","merch_long"]):
-            
+        if all(col in df.columns for col in ["previous_merch_lat","previous_merch_long","merch_lat","merch_long"]):         
             df["distance_from_previous_location_km"] = (haversine_distance(df["previous_merch_lat"],
                 df["previous_merch_long"],
                 df["merch_lat"],
@@ -156,58 +154,43 @@ def create_features(df):
     if all(col in df.columns for col in [
             "distance_from_previous_location_km",
             "time_since_previous_transaction_minutes"]):
-
         df["location_velocity_kmph"] = np.where(df["time_since_previous_transaction_minutes"] > 0,
             df["distance_from_previous_location_km"]/(df["time_since_previous_transaction_minutes"]/ 60),np.nan)
     
-    # CARD TRANSACTION NUMBER
-    
+    # CARD TRANSACTION NUMBER 
     if "cc_num" in df.columns: df["card_transaction_number"] = (df.groupby("cc_num").cumcount())
-
     # CARD / MERCHANT HISTORY
     if ("cc_num" in df.columns and "merchant" in df.columns):
         df["card_merchant_count"] = (df.groupby(["cc_num", "merchant"]).cumcount())
         df["is_new_merchant"] = (df["card_merchant_count"] == 0).astype(int)
-
     # CARD / CITY HISTORY
 
     if ("cc_num" in df.columns and "city" in df.columns):
         df["card_city_count"] = (df.groupby(["cc_num", "city"]).cumcount())
         df["is_new_city"] = (df["card_city_count"] == 0).astype(int)
-
     # CARD / CATEGORY HISTORY
 
     if ("cc_num" in df.columns and "category" in df.columns):
         df["card_category_count"] = (df.groupby(["cc_num", "category"]).cumcount())
         df["is_new_category"] = (df["card_category_count"] == 0).astype(int)
-
     # HISTORICAL AMOUNT STATISTICS
 
     if ("cc_num" in df.columns and "amt" in df.columns):
-
         # Previous Average Amount
         df["previous_avg_amount"] = (df.groupby("cc_num")["amt"].transform(lambda x:x.shift(1) .expanding().mean()))
         # Previous Standard Deviation
         df["previous_std_amount"] = (df.groupby("cc_num")["amt"].transform(lambda x:x.shift(1).expanding().std()))
-
         # Amount vs Historical Average
-
         df["amount_vs_historical_avg"] = (df["amt"]/df["previous_avg_amount"].replace(0, np.nan))
         # Amount Z-Score
-
         df["amount_zscore"] = ((df["amt"] - df["previous_avg_amount"])/df["previous_std_amount"].replace(0, np.nan))
 
     # REPLACE INFINITE VALUES
-
     df = df.replace([np.inf, -np.inf],np.nan)
-
     # REMOVE TEMPORARY COLUMNS
-
     temporary_columns = ["previous_transaction_time"]
     df = df.drop(columns=temporary_columns,errors="ignore")
-
     # REMOVE IDENTIFIER / PII COLUMNS
-
     identifier_columns = [
         "cc_num",
         "trans_num",
@@ -216,6 +199,5 @@ def create_features(df):
         "last",
         "street"]
     df = df.drop(columns=identifier_columns,errors="ignore")
-
     # RETURN FEATURE-ENGINEERED DATA
     return df
